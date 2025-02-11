@@ -1,0 +1,129 @@
+{% extends "base_in.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ category.name }} tasks</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto mt-10">
+        <h2 class="text-3xl font-bold text-gray-800 text-center mb-6">{{ category.name }} Tasks</h2>
+        <div class="flex justify-center gap-4 mb-8">
+            <a href="{% url 'create_task' %}"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md">
+                Add New Task
+            </a>
+            <a href="{% url 'category_list' %}"
+                class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-6 rounded-lg shadow-md bg-green-600">
+                Back to Categories
+            </a>
+        </div>
+        <div class="mb-6">
+            <form method="get" class="flex items-center gap-2">
+                <input type="text" name="search" 
+                       value="{{ search_query }}" 
+                       placeholder="Search tasks..." 
+                       class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white py-3 px-4 rounded-lg">
+                    Search
+                </button>
+            </form>
+        </div>
+       
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="py-4 px-6 text-left text-sm font-medium text-gray-700">Task Name</th>
+                        <th class="py-4 px-6 text-left text-sm font-medium text-gray-700">End Date</th>
+                        <th class="py-4 px-6 text-left text-sm font-medium text-gray-700">Time Left</th>
+                        <th class="py-4 px-6 text-left text-sm font-medium text-gray-700">Priority</th>
+                        <th class="py-4 px-6 text-left text-sm font-medium text-gray-700">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for task in tasks %}
+                    <tr id="taskRow_{{ task.id }}">
+                        <td class="py-4 px-6 text-sm text-gray-700">{{ task.name }}</td>
+                        <td class="py-4 px-6 text-sm text-gray-700">{{ task.end_date }}</td>
+                        <td class="py-4 px-6 text-sm text-gray-700">
+                            <div id="countdown_{{ task.id }}" class="font-medium text-gray-900"></div>
+                        </td>
+                        <td class="py-4 px-6 text-sm text-gray-700">{{ task.priority }}</td>
+                        <td class="py-4 px-6 text-sm text-gray-700">
+                            <button type="button" 
+                                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded"
+                                    onclick="showTaskModal({{ task.id }})">
+                                Details
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Task Details Modal -->
+    <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-11/12 md:w-3/4 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">Task Details</h3>
+                <button class="text-gray-500 hover:text-gray-700" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalContent" class="space-y-4">
+                <!-- Task details will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTaskModal(taskId) {
+            const modal = document.getElementById('taskModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            const taskRow = document.getElementById(`taskRow_${taskId}`);
+            const taskName = taskRow.querySelector('td:nth-child(1)').textContent;
+            const endDate = taskRow.querySelector('td:nth-child(2)').textContent;
+            const priority = taskRow.querySelector('td:nth-child(4)').textContent;
+
+            modalContent.innerHTML = `
+                <p><strong>Name:</strong> ${taskName}</p>
+                <p><strong>End Date:</strong> ${endDate}</p>
+                <p><strong>Priority:</strong> ${priority}</p>
+            `;
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('taskModal').classList.add('hidden');
+        }
+
+        function updateCountdownTimers() {
+            {% for task in tasks %}
+            const countdownElement = document.getElementById(`countdown_${task.id}`);
+            const endDate = new Date('{{ task.end_date|date:"Y-m-d\TH:i:s\Z" }}');
+            const now = new Date();
+            const timeDiff = endDate - now;
+
+            if (timeDiff > 0) {
+                const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+                countdownElement.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            } else {
+                countdownElement.textContent = 'Task has ended';
+            }
+            {% endfor %}
+        }
+
+        setInterval(updateCountdownTimers, 1000);
+    </script>
+</body>
+</html>
+{% endblock %}

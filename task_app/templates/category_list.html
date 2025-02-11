@@ -1,0 +1,59 @@
+{% extends "base_in.html" %}
+{% block content %}
+<body class="bg-gray-100">
+    <div class="container mx-auto mt-10">
+        <div class="text-center mb-6">
+            <h2 class="text-3xl font-bold text-white">Categories</h2>
+        </div>
+
+        <div class="flex justify-between mb-6">
+            <a href="{% url 'create_category' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Create Category
+            </a>
+
+            <a href="{% url 'user_tasks_list' %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                My Tasks
+            </a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="py-4 px-6 text-left text-sm font-medium text-gray-700">Name</th>
+                        <th class="py-4 px-6 text-left text-sm font-medium text-gray-700 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for category in categories %}
+                    <tr>
+                        <td class="py-4 px-6 text-sm text-gray-700">
+                            <a href="{% url 'category_tasks' category.id %}" class="text-blue-600 hover:text-blue-800">
+                                {{ category.name }}
+                            </a>
+                        </td>
+                        <td class="py-4 px-6 text-sm text-gray-700 text-right">
+                            <form method="post" action="{% url 'delete_category' category.id %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript function to display the message in a popup form
+        {% if messages %}
+            {% for message in messages %}
+                alert("{{ message }}");
+            {% endfor %}
+        {% endif %}
+    </script>
+</body>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base_in.html" %}
+{% block content %}
+<body class="bg-gray-100">
+    <div class="container mx-auto mt-10">
+        <h2 class="text-3xl font-bold text-gray-800 text-center mb-6">Add Task</h2>
+
+        <form method="post" action="{% url 'create_task' %}" 
+              onsubmit="return validateForm()" 
+              class="max-w-md mx-auto space-y-6">
+            {% csrf_token %}
+            <div>
+                <label for="name" class="block mb-2 text-sm font-medium text-gray-900">Task Name:</label>
+                <input type="text" id="name" name="name" 
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter task name" required>
+            </div>
+
+            <div>
+                <label for="category" class="block mb-2 text-sm font-medium text-gray-900">Category:</label>
+                <select id="category" name="category" 
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required>
+                    <option value="">Select category</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="assigned_to" class="block mb-2 text-sm font-medium text-gray-900">User:</label>
+                <select id="assigned_to" name="assigned_to" 
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required>
+                    <option value="">Select user</option>
+                    {% for user in users %}
+                    <option value="{{ user.id }}">{{ user.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="start_date" class="block mb-2 text-sm font-medium text-gray-900">Start Date:</label>
+                <input type="datetime-local" id="start_date" name="start_date" 
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required>
+            </div>
+
+            <div>
+                <label for="end_date" class="block mb-2 text-sm font-medium text-gray-900">End Date:</label>
+                <input type="datetime-local" id="end_date" name="end_date" 
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required>
+            </div>
+
+            <div>
+                <label for="priority" class="block mb-2 text-sm font-medium text-gray-900">Priority:</label>
+                <input type="number" id="priority" name="priority" 
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    min="1" value="1" required>
+            </div>
+
+            <div>
+                <label for="description" class="block mb-2 text-sm font-medium text-gray-900">Description:</label>
+                <textarea id="description" name="description" 
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    rows="3"></textarea>
+            </div>
+
+            <div>
+                <label for="location" class="block mb-2 text-sm font-medium text-gray-900">Location:</label>
+                <input type="text" id="location" name="location" 
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter task location">
+            </div>
+
+            <div>
+                <label for="organizer" class="block mb-2 text-sm font-medium text-gray-900">Organizer:</label>
+                <input type="text" id="organizer" name="organizer" 
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter task organizer">
+            </div>
+
+            <button type="submit" 
+                class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">
+                Submit
+            </button>
+        </form>
+    </div>
+
+    <script>
+        function validateForm() {
+            const startDate = new Date(document.getElementById('start_date').value);
+            const endDate = new Date(document.getElementById('end_date').value);
+            
+            if (startDate >= endDate) {
+                alert('End date must be after the start date.');
+                return false;
+            }
+            return true;
+        }
+    </script>
+</body>
+{% endblock %}

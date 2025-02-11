@@ -1,0 +1,97 @@
+{% extends "base_in.html" %}
+{% block content %}
+<body class="bg-gray-100">
+    <div class="container mx-auto mt-10">
+        <h2 class="text-3xl font-bold text-gray-800 text-center mb-6">Update Task</h2>
+
+        <form method="post" id="updateTaskForm" class="max-w-md mx-auto space-y-6">
+            {% csrf_token %}
+            <div>
+                <label for="name" class="block mb-2 text-sm font-medium text-gray-900">Name:</label>
+                <input type="text" id="name" name="name" value="{{ task.name }}" required
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <!-- Assigned To Field -->
+            <div class="relative">
+                <label for="assigned_to" class="block mb-2 text-sm font-medium text-gray-900">Assigned To:</label>
+                <input type="hidden" name="assigned_to" value="{{ task.assigned_to.id }}">
+                <div class="flex items-center gap-2 text-sm text-gray-700">
+                    <img src="{{ task.assigned_to.userprofile.profile_picture.url }}" 
+                         class="w-6 h-6 rounded-full" 
+                         onerror="this.onerror=null;">
+                    {{ task.assigned_to.username }}
+                </div>
+            </div>
+
+            <div>
+                <label for="start_date" class="block mb-2 text-sm font-medium text-gray-900">Start Date:</label>
+                <input type="datetime-local" id="start_date" name="start_date" 
+                    value="{{ task.start_date|date:"Y-m-d\\TH:i" }}" required
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div>
+                <label for="end_date" class="block mb-2 text-sm font-medium text-gray-900">End Date:</label>
+                <input type="datetime-local" id="end_date" name="end_date" 
+                    value="{{ task.end_date|date:"Y-m-d\\TH:i" }}" required
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <small id="end_date_error" class="block text-sm text-red-500"></small>
+            </div>
+
+            <div>
+                <label for="priority" class="block mb-2 text-sm font-medium text-gray-900">Priority:</label>
+                <input type="number" id="priority" name="priority" 
+                    min="1" max="10" value="{{ task.priority }}" required
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div>
+                <label for="description" class="block mb-2 text-sm font-medium text-gray-900">Description:</label>
+                <textarea id="description" name="description" rows="4" required
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">{{ task.description }}</textarea>
+            </div>
+
+            <div>
+                <label for="location" class="block mb-2 text-sm font-medium text-gray-900">Location:</label>
+                <input type="text" id="location" name="location" value="{{ task.location }}"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div>
+                <label for="organizer" class="block mb-2 text-sm font-medium text-gray-900">Organizer:</label>
+                <input type="text" id="organizer" name="organizer" value="{{ task.organizer }}"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 text-white py-3 px-4 rounded-md 
+                   hover:bg-blue-700 transition-colors focus:ring-4 focus:ring-blue-500 focus:ring-offset-2">
+                Update Task
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // Function to validate end date is after start date
+        function validateEndDate() {
+            const startDate = new Date(document.getElementById('start_date').value);
+            const endDate = new Date(document.getElementById('end_date').value);
+            if (endDate <= startDate) {
+                document.getElementById('end_date_error').textContent = 
+                    'End date must be after start date';
+                return false;
+            }
+            document.getElementById('end_date_error').textContent = '';
+            return true;
+        }
+
+        // Add event listener to form submission for validation
+        document.getElementById('updateTaskForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            if (validateEndDate()) {
+                this.submit();
+            }
+        });
+    </script>
+</body>
+{% endblock %}

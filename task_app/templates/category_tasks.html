@@ -1,0 +1,209 @@
+{% extends "base_in.html" %}
+{% block content %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ category.name }} tasks</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+    <style>
+        /* Additional CSS for countdown timer and modal animations */
+        .countdown-timer {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #333;
+            text-transform: uppercase;
+        }
+        
+        .modal {
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease-out;
+        }
+        .modal.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto my-20">
+        <h2 class="text-4xl text-white-800 font-bold text-center mb-8 text-white">
+            {{ category.name }} tasks
+        </h2>
+        
+        <!-- Table Actions -->
+        <div class="flex justify-center gap-4 mb-8">
+            <a href="{% url 'create_task' %}"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md">
+                Add New Task
+            </a>
+            <a href="{% url 'category_list' %}"
+                class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-6 rounded-lg shadow-md">
+                Back to Categories
+            </a>
+        </div>
+        
+        <!-- Task Table -->
+        <div class="bg-white shadow-lg rounded-lg p-6 overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr class="text-slate-600">
+                        <th class="px-6 py-2 font-semibold uppercase tracking-wide">Task Name</th>
+                        <th class="px-6 py-2 font-semibold uppercase tracking-wide">Assigned To</th>
+                        <th class="px-6 py-2 font-semibold uppercase tracking-wide">Start Date</th>
+                        <th class="px-6 py-2 font-semibold uppercase tracking-wide">Time Left</th>
+                        <th class="px-6 py-2 font-semibold uppercase tracking-wide">
+                            Priority
+                            <button class="font-bold text-blue-600 ml-2 hover:text-blue-700"
+                                onclick="sortByPriority()">
+                                ↑
+                            </button>
+                        </th>
+                        <th class="px-6 py-2 font-semibold uppercase tracking-wide text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for task in tasks %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">{{ task.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">{{ task.assigned_to.username }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">{{ task.start_date }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <div id="countdown_{{ task.id }}" class="countdown-timer text-center"></div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">{{ task.priority }}</td>
+                        <td class="px-6 py-4 text-right whitespace-nowrap">
+                            <a href="{% url 'update_task' task.id %}"
+                                class="text-blue-600 hover:text-blue-700 font-semibold">
+                                Update
+                            </a>
+                            <form method="post" action="{% url 'delete_task' task.id %}"
+                                class="inline">
+                                {% csrf_token %}
+                                <button type="submit"
+                                    class="text-red-600 hover:text-red-700 font-semibold ml-3">
+                                    Delete
+                                </button>
+                            </form>
+                            <button type="button"
+                                class="text-green-600 hover:text-green-700 font-semibold ml-3"
+                                onclick="openModal('{{ task.id }}')">
+                                Details
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Modals -->
+        {% for task in tasks %}
+        <div id="taskModal_{{ task.id }}"
+            class="modal fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+            <div class="modal-content w-full max-w-lg bg-white rounded-lg shadow-lg">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between p-4 border-b border-slate-100">
+                    <h3 class="text-2xl font-bold text-slate-800">{{ task.name }}</h3>
+                    <button class="text-slate-400 hover:text-slate-600"
+                        onclick="closeModal('{{ task.id }}')">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M5.293 5.293a1 1 0 011.414 0L10 8.586l3.293-3.293a1 1 0 111.414 1.414L11.414 10l3.293 3.293a1 1 0 01-1.414 1.414L10 11.414l-3.293 3.293a1 1 0 01-1.414-1.414L8.586 10 5.293 6.707a1 1 0 010-1.414z" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="p-4 text-slate-600">
+                    <p class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-slate-700">Category:</span>
+                        {{ task.category.name }}
+                    </p>
+                    <p class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-slate-700">Assigned to:</span>
+                        {{ task.assigned_to.username }}
+                    </p>
+                    <p class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-slate-700">Start Date:</span>
+                        {{ task.start_date }}
+                    </p>
+                    <p class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-slate-700">End Date:</span>
+                        {{ task.end_date }}
+                    </p>
+                    <p class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-slate-700">Priority:</span>
+                        {{ task.priority }}
+                    </p>
+                    <p class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-slate-700">Description:</span>
+                        {{ task.description }}
+                    </p>
+                    <p class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-slate-700">Location:</span>
+                        {{ task.location }}
+                    </p>
+                    <p class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-slate-700">Organizer:</span>
+                        {{ task.organizer }}
+                    </p>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="flex items-center justify-end p-4 border-t border-slate-100">
+                    <button class="text-slate-500 hover:text-slate-600 mr-3"
+                        onclick="closeModal('{{ task.id }}')">Close</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+    </body>
+    
+    <!-- Scripts -->
+    <script>
+        // Countdown Timer
+        function updateCountdownTimers() {
+            {% for task in tasks %}
+            const taskStartDate = new Date('{{ task.start_date|date:"Y/m/d H:i:s" }}');
+            const now = new Date();
+            const timeRemaining = taskStartDate - now;
+
+            if (timeRemaining > 0) {
+                const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+
+                document.getElementById('countdown_{{ task.id }}').textContent =
+                    `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            } else {
+                document.getElementById('countdown_{{ task.id }}').textContent = 'Started!';
+            }
+            {% endfor %}
+        }
+        setInterval(updateCountdownTimers, 1000);
+
+        // Modal Functions
+        function openModal(id) {
+            document.getElementById(`taskModal_${id}`).classList.remove('hidden');
+            document.getElementById(`taskModal_${id}`).className += ' show';
+        }
+
+        function closeModal(id) {
+            document.getElementById(`taskModal_${id}`).classList.add('hidden');
+            document.getElementById(`taskModal_${id}`).className = 
+                document.getElementById(`taskModal_${id}`).className.replace(' show', '');
+        }
+
+        // Table Sorting
+        function sortByPriority() {
+            const table = document.getElementById("taskTable");
+            const rows = Array.from(table.rows).slice(1);
+            rows.sort((a, b) => a.cells[4].textContent - b.cells[4].textContent);
+            while (table.rows.length > 1) table.deleteRow(1);
+            rows.forEach(row => table.appendChild(row));
+        }
+    </script>
+{% endblock %}
